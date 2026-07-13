@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RUBIM — Iniciar Sesión</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="rubim-theme.css">
+<script src="config.js"></script>
+<style>
+    body {
+        background: var(--rubim-negro);
+        height: 100vh;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        position: relative;
+    }
+
+    /* Patrón de fondo: contorno de diamante gigante, muy tenue — telón de fondo tipo escenario */
+    .fondo-diamante {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        pointer-events: none;
+        opacity: 0.07;
+    }
+    .fondo-diamante svg { width: 140vh; height: 140vh; }
+
+    .login-envoltorio {
+        position: relative;
+        z-index: 1;
+        width: 100%;
+        max-width: 380px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 0 20px;
+    }
+
+    .rubim-badge {
+        width: 150px;
+        margin-bottom: -2px;
+        z-index: 2;
+    }
+
+    .login-tarjeta {
+        width: 100%;
+        background: var(--rubim-hueso);
+        padding: 46px 34px 34px;
+        box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+    }
+
+    .login-tarjeta h1 { font-size: 26px; text-align: center; }
+    .login-subtitulo {
+        text-align: center;
+        color: var(--rubim-plata);
+        font-size: 13px;
+        letter-spacing: 0.05em;
+        margin-top: 6px;
+        margin-bottom: 4px;
+    }
+
+    #btn-login { width: 100%; margin-top: 6px; }
+
+    .pie-login {
+        margin-top: 26px;
+        text-align: center;
+        font-size: 11px;
+        color: #5a5a5a;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+    }
+</style>
+</head>
+<body>
+
+<div class="fondo-diamante">
+    <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+        <polygon points="100,10 170,70 100,190 30,70" fill="none" stroke="#8c1c2b" stroke-width="1.4"/>
+        <polygon points="100,10 130,70 100,190 70,70" fill="none" stroke="#8c1c2b" stroke-width="1"/>
+    </svg>
+</div>
+
+<div class="login-envoltorio">
+    <div class="rubim-badge corte-sm">
+        <img src="assets/rubim_logo.png" alt="RUBIM, C.A.">
+    </div>
+
+    <div class="login-tarjeta corte-lg">
+        <h1>Rubim</h1>
+        <p class="login-subtitulo">Sistema de Procesamiento de Transacciones</p>
+        <div class="filo-divisor"></div>
+
+        <form id="form-login">
+            <div class="campo">
+                <label for="usuario">Usuario</label>
+                <input type="text" id="usuario" placeholder="Tu nombre de usuario" required autocomplete="username">
+            </div>
+
+            <div class="campo">
+                <label for="contrasena">Contraseña</label>
+                <input type="password" id="contrasena" placeholder="Tu contraseña" required autocomplete="current-password">
+            </div>
+
+            <button type="submit" class="btn btn-carmesi corte-sm" id="btn-login">Ingresar al sistema</button>
+        </form>
+
+        <div id="mensaje" class="mensaje-box"></div>
+    </div>
+
+    <p class="pie-login">Respaldando tu crecimiento financiero</p>
+</div>
+
+<script>
+    const formLogin = document.getElementById('form-login');
+    const divMensaje = document.getElementById('mensaje');
+    const btnLogin = document.getElementById('btn-login');
+
+    // Si ya hay una sesión activa, saltamos directo al panel.
+    if (localStorage.getItem('rubim_token')) {
+        window.location.href = 'index.html';
+    }
+
+    formLogin.addEventListener('submit', async function (event) {
+        event.preventDefault();
+
+        const credenciales = {
+            usuario: document.getElementById('usuario').value,
+            contrasena: document.getElementById('contrasena').value
+        };
+
+        divMensaje.className = 'mensaje-box';
+        btnLogin.disabled = true;
+        btnLogin.textContent = 'Verificando...';
+
+        try {
+            const respuesta = await fetch(`${API_BASE}/auth/login`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(credenciales)
+            });
+
+            const resultado = await respuesta.json();
+
+            if (respuesta.ok) {
+                // Antes se guardaba solo el usuario/rol. Ahora se guarda el JWT
+                // real que el backend exige en cada ruta protegida.
+                localStorage.setItem('rubim_token', resultado.access_token);
+                localStorage.setItem('rubim_usuario', resultado.usuario);
+                localStorage.setItem('rubim_rol', resultado.rol);
+                window.location.href = 'index.html';
+            } else {
+                divMensaje.textContent = resultado.detail || 'Error de autenticación.';
+                divMensaje.className = 'mensaje-box error';
+            }
+        } catch (error) {
+            divMensaje.textContent = 'No hay conexión con el servidor central (¿está corriendo uvicorn?).';
+            divMensaje.className = 'mensaje-box error';
+        } finally {
+            btnLogin.disabled = false;
+            btnLogin.textContent = 'Ingresar al sistema';
+        }
+    });
+</script>
+</body>
+</html>

@@ -1,0 +1,390 @@
+/* ==========================================================================
+   RUBIM — Sistema de tema compartido (login.html + index.html)
+
+   QUÉ HACE ESTE ARCHIVO, EN UNA FRASE:
+   Es el "libro de estilo" único de todo el frontend: define los colores,
+   tipografías, botones, tablas y demás piezas visuales UNA sola vez, para
+   que login.html e index.html se vean como parte de un mismo sistema, sin
+   tener que repetir el mismo CSS en cada archivo.
+
+   Estética: carmesí + negro del logo, tipografía angulosa, cortes de gema
+   en vez de esquinas redondeadas. "Agresivo pero elegante."
+   ========================================================================== */
+
+:root {
+    /* ':root' es un selector especial de CSS que representa al documento
+       HTML completo — es el lugar convencional para declarar "variables
+       CSS" (también llamadas "custom properties"), porque así quedan
+       disponibles para CUALQUIER elemento de la página, sin importar en
+       qué parte del HTML esté. */
+    --rubim-negro: #0d0d0f;
+    --rubim-negro-suave: #17171a;
+    --rubim-acero: #232327;
+    --rubim-carmesi: #8c1c2b;
+    --rubim-carmesi-brillante: #b8283a;
+    --rubim-hueso: #f2f0ec;
+    --rubim-hueso-tenue: #e6e3dc;
+    --rubim-plata: #8d8d92;
+    --rubim-linea: rgba(13, 13, 15, 0.14);
+    /* Cada línea define una variable con el patrón "--nombre: valor;".
+       Para USARLAS en cualquier otra regla de este archivo (o de
+       login.html/index.html), se escribe "var(--nombre)" — por ejemplo,
+       "background: var(--rubim-negro);". La gran ventaja de centralizar
+       los colores así: si algún día se quiere cambiar el tono exacto del
+       carmesí institucional, basta con editar ESTA línea una sola vez, en
+       vez de buscar y reemplazar el código de color en decenas de reglas
+       distintas repartidas por todo el proyecto.
+       'rgba(13, 13, 15, 0.14)' es un color especificado como
+       Rojo-Verde-Azul-Alpha (transparencia): los primeros tres números
+       son casi negro, y "0.14" significa 14% de opacidad — un negro casi
+       transparente, usado para líneas divisorias muy sutiles. */
+
+    --corte-lg: 18px;
+    --corte-md: 12px;
+    --corte-sm: 7px;
+    /* Estas tres variables controlan qué tan pronunciado es el "corte de
+       gema" (ver las clases .corte-lg/.corte-md/.corte-sm más abajo) —
+       mientras más grande el número, más grande el triángulo que se
+       recorta de cada esquina. */
+}
+
+* { box-sizing: border-box; }
+/* El selector '*' aplica esta regla a TODOS los elementos de la página,
+   sin excepción. 'box-sizing: border-box' cambia cómo el navegador
+   calcula el tamaño final de cada elemento: con este valor, el "padding"
+   (espacio interno) y el borde se restan del ancho/alto declarado, en vez
+   de sumarse encima. Es prácticamente un estándar en CSS moderno, porque
+   hace que calcular tamaños y layouts sea mucho más predecible. */
+
+body {
+    margin: 0;
+    /* Los navegadores, por defecto, le dan al <body> un pequeño margen
+       propio — lo ponemos en 0 para tener control total del espacio desde
+       cero, sin ese margen "invisible" heredado del navegador. */
+    background-color: var(--rubim-hueso);
+    color: var(--rubim-negro);
+    font-family: 'Inter', 'Segoe UI', sans-serif;
+    /* La lista de fuentes es un plan de respaldo en cascada: el
+       navegador intenta usar 'Inter' (la que cargamos desde Google
+       Fonts); si por algún motivo no pudiera cargarla (sin conexión a
+       internet, por ejemplo), usa 'Segoe UI' (una fuente típica de
+       Windows); y si tampoco existiera, cae en cualquier fuente
+       "sans-serif" genérica que tenga el sistema operativo. */
+    -webkit-font-smoothing: antialiased;
+    /* Una propiedad específica de navegadores basados en WebKit/Blink
+       (Chrome, Safari, Edge) que suaviza los bordes del texto, haciendo
+       que se vea más nítido y delgado en pantallas de alta densidad. */
+}
+
+h1, h2, h3, .rubim-display {
+    font-family: 'Oswald', 'Segoe UI', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--rubim-negro);
+    margin: 0;
+}
+/* Todos los títulos del sistema comparten esta regla: tipografía angulosa
+   (Oswald), siempre en mayúsculas, con letras ligeramente separadas
+   ("letter-spacing: 0.04em" — "em" es una unidad relativa al tamaño de
+   fuente actual, no un valor fijo en píxeles) — es la firma tipográfica
+   del proyecto. */
+
+/* --- Firma visual: corte de gema en vez de border-radius --- */
+.corte-lg {
+    clip-path: polygon(
+        var(--corte-lg) 0, 100% 0, 100% calc(100% - var(--corte-lg)),
+        calc(100% - var(--corte-lg)) 100%, 0 100%, 0 var(--corte-lg)
+    );
+}
+.corte-md {
+    clip-path: polygon(
+        var(--corte-md) 0, 100% 0, 100% calc(100% - var(--corte-md)),
+        calc(100% - var(--corte-md)) 100%, 0 100%, 0 var(--corte-md)
+    );
+}
+.corte-sm {
+    clip-path: polygon(
+        var(--corte-sm) 0, 100% 0, 100% calc(100% - var(--corte-sm)),
+        calc(100% - var(--corte-sm)) 100%, 0 100%, 0 var(--corte-sm)
+    );
+}
+/* Esto es la marca visual más distintiva de todo el sistema, así que
+   vale la pena entenderla a fondo para la evaluación:
+
+   'clip-path: polygon(...)' le dice al navegador "de este elemento
+   rectangular, solo dibuja/muestra la parte que cae DENTRO de este
+   polígono que te estoy definiendo — todo lo que quede afuera del
+   polígono, literalmente desaparece (se "recorta")".
+
+   El polígono se define como una lista de 6 puntos (x, y), recorriendo
+   el rectángulo en sentido horario empezando arriba a la izquierda:
+     1. (var(--corte), 0)                                    → un poco a la
+        derecha de la esquina superior izquierda, pegado arriba.
+     2. (100%, 0)                                              → esquina
+        superior derecha, sin recorte.
+     3. (100%, calc(100% - var(--corte)))                     → un poco
+        arriba de la esquina inferior derecha.
+     4. (calc(100% - var(--corte)), 100%)                     → un poco a
+        la izquierda de la esquina inferior derecha, pegado abajo.
+     5. (0, 100%)                                              → esquina
+        inferior izquierda, sin recorte.
+     6. (0, var(--corte))                                     → un poco
+        abajo de la esquina superior izquierda.
+
+   El resultado visual: en vez de las 4 esquinas típicas en ángulo recto
+   de un rectángulo, SOLO dos esquinas opuestas (arriba-derecha y
+   abajo-izquierda) quedan intactas, y las otras dos (arriba-izquierda y
+   abajo-derecha) quedan "cortadas" en diagonal — como una gema tallada,
+   en vez del típico "border-radius" (esquinas redondeadas) que usan la
+   mayoría de las interfaces web. 'calc(...)' permite hacer operaciones
+   matemáticas directamente en CSS, mezclando unidades distintas (aquí,
+   un porcentaje menos un valor fijo en píxeles), algo que no se podría
+   escribir de otra forma. Las tres clases (lg/md/sm) son la misma idea,
+   solo que usan distinto tamaño de corte según qué tan grande sea el
+   elemento (un botón necesita un corte mucho más chico que una tarjeta
+   entera de login). */
+
+/* --- Divisor dentado (eco del filo del diamante) --- */
+.filo-divisor {
+    height: 6px;
+    width: 100%;
+    background:
+        linear-gradient(135deg, transparent 50%, var(--rubim-carmesi) 50%) 0 0 / 12px 12px repeat-x;
+    opacity: 0.9;
+    margin: 10px 0 22px;
+}
+/* Esta línea decorativa que separa los títulos del contenido de cada
+   sección NO es una imagen ni un borde simple — es un truco de CSS puro:
+   'linear-gradient(135deg, transparent 50%, var(--rubim-carmesi) 50%)'
+   crea un cuadrado invisible en su mitad superior-izquierda y carmesí en
+   su mitad inferior-derecha (un gradiente que cambia abruptamente al
+   50%, no una transición suave). Luego, "0 0 / 12px 12px repeat-x" hace
+   que ese cuadradito de 12x12px se repita una y otra vez solo en el eje
+   horizontal ("repeat-x"), generando visualmente una fila continua de
+   pequeños triángulos rojos en zigzag — la misma idea de "filo dentado"
+   que las esquinas cortadas de arriba, pero aplicada a una línea. */
+
+/* --- Badge del logo (marco carmesí sobre el fondo blanco propio del png) --- */
+.rubim-badge {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 10px;
+    background: var(--rubim-hueso);
+    border: 2px solid var(--rubim-carmesi);
+    box-shadow: 0 0 0 5px var(--rubim-negro), 0 8px 22px rgba(0,0,0,0.45);
+    /* Esta propiedad "box-shadow" tiene DOS sombras separadas por coma:
+       la primera, "0 0 0 5px var(--rubim-negro)" (sin desplazamiento ni
+       difuminado, solo 5px de expansión sólida), en realidad se usa como
+       un truco para dibujar un SEGUNDO borde negro alrededor del borde
+       carmesí ya existente — dando el efecto de "marco dentro de marco".
+       La segunda sombra sí es una sombra de verdad, difusa, que separa
+       visualmente el logo del fondo. */
+}
+.rubim-badge img {
+    width: 100%;
+    display: block;
+    /* 'display: block' en una imagen elimina un pequeño espacio en
+       blanco fantasma que los navegadores agregan por defecto debajo de
+       las imágenes (porque, por defecto, una <img> se comporta como una
+       letra de texto más, con espacio reservado para "colgantes" como
+       la 'g' o la 'y'). */
+}
+
+/* --- Botones --- */
+.btn {
+    font-family: 'Oswald', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-weight: 600;
+    font-size: 14px;
+    padding: 13px 20px;
+    border: 2px solid var(--rubim-negro);
+    background: var(--rubim-negro);
+    color: var(--rubim-hueso);
+    cursor: pointer;
+    /* 'cursor: pointer' cambia la forma del mouse a una "manito" al
+       pasar por encima — es la señal visual estándar de "esto es
+       clickeable", incluso aunque técnicamente estemos aplicando este
+       estilo a un elemento que no sea un <button> nativo. */
+    transition: 0.18s ease;
+    /* 'transition' hace que los CAMBIOS de estilo (por ejemplo, el
+       cambio de color al pasar el mouse, ver ".btn:hover" abajo) ocurran
+       de forma gradual en 0.18 segundos, en vez de un salto instantáneo
+       — le da una sensación más pulida a la interfaz. */
+}
+.btn:hover { background: var(--rubim-carmesi); border-color: var(--rubim-carmesi); }
+.btn:active { transform: translateY(1px); }
+/* ':hover' se activa mientras el mouse está encima; ':active' se activa
+   solo en el instante exacto en que se mantiene presionado el clic —
+   "translateY(1px)" mueve el botón 1px hacia abajo en ese momento, dando
+   la sensación física de "estar presionando un botón real". */
+.btn:disabled { opacity: 0.5; cursor: not-allowed; }
+/* Este es el estilo que se ve, por ejemplo, en el botón de login mientras
+   dice "Verificando..." (ver login.html: "btnLogin.disabled = true") —
+   se atenúa visualmente y el cursor cambia a un símbolo de "prohibido"
+   para comunicar que no se puede volver a hacer clic en este momento. */
+
+.btn-ghost {
+    background: transparent;
+    color: var(--rubim-negro);
+}
+.btn-ghost:hover { background: var(--rubim-negro); color: var(--rubim-hueso); }
+/* Una variante "fantasma" del botón: normalmente transparente, y solo se
+   rellena de color al pasar el mouse por encima. Se usa, por ejemplo, en
+   el botón "Confirmar" de la tabla de Citas (index.html), para que no
+   compita visualmente con los botones principales de "carmesí". */
+
+.btn-carmesi {
+    background: var(--rubim-carmesi);
+    border-color: var(--rubim-carmesi);
+}
+.btn-carmesi:hover { background: var(--rubim-carmesi-brillante); border-color: var(--rubim-carmesi-brillante); }
+/* La variante "principal" de botón, usada en TODOS los formularios de
+   creación (Registrar cliente, Registrar lead, Programar cita, etc.) —
+   el color carmesí institucional en vez del negro por defecto de ".btn". */
+
+/* --- Formularios --- */
+.campo { margin-bottom: 18px; }
+/* Envuelve cada par "label + input" del sistema, dándole un espacio
+   vertical consistente respecto al siguiente campo. */
+.campo label {
+    display: block;
+    margin-bottom: 7px;
+    font-weight: 600;
+    font-size: 12.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--rubim-acero);
+}
+.campo input, .campo select, .campo textarea {
+    width: 100%;
+    padding: 11px 12px;
+    border: 1.5px solid #cfcbc2;
+    background: #fff;
+    font-size: 14.5px;
+    font-family: 'Inter', sans-serif;
+    color: var(--rubim-negro);
+}
+/* Esta única regla aplica el mismo estilo visual a los tres tipos de
+   campo de formulario que usa el sistema (texto, desplegables y áreas de
+   texto), para que todos se vean consistentes sin tener que repetir la
+   misma lista de propiedades tres veces. */
+.campo input:focus, .campo select:focus, .campo textarea:focus {
+    outline: none;
+    border-color: var(--rubim-carmesi);
+}
+/* ':focus' se activa cuando el campo está "seleccionado" (el cursor
+   parpadeando adentro, listo para escribir). Quitamos el "outline"
+   (contorno) azul que ponen los navegadores por defecto, y en su lugar
+   pintamos el borde del campo de color carmesí — así se mantiene la
+   señal visual de "este es el campo activo", pero con la identidad
+   propia del sistema en vez del azul genérico del navegador. */
+.campo input[readonly] { background: var(--rubim-hueso-tenue); color: var(--rubim-plata); }
+/* Este selector "input[readonly]" apunta específicamente a los campos
+   que tienen el atributo HTML "readonly" — como "canal_preview" en el
+   formulario de Clientes (index.html). Los pinta con un fondo grisáceo y
+   texto más tenue, para que a simple vista se note que ese campo no se
+   puede editar manualmente. */
+
+/* --- Mensajes de estado --- */
+.mensaje-box {
+    margin-top: 16px;
+    padding: 12px 14px;
+    font-size: 14px;
+    font-weight: 600;
+    display: none;
+    /* 'display: none' por defecto: el recuadro de mensaje está
+       completamente invisible y no ocupa espacio, hasta que JavaScript
+       (mostrarMensaje() en app.js, o el script propio de login.html) le
+       agregue una de las clases de abajo, que sí incluyen "display:
+       block". */
+    border-left: 4px solid transparent;
+}
+.mensaje-box.exito { display: block; background: #eaf3ea; color: #285c2c; border-left-color: #3c8a43; }
+.mensaje-box.error { display: block; background: #f7e6e6; color: var(--rubim-carmesi); border-left-color: var(--rubim-carmesi); }
+.mensaje-box.procesando { display: block; background: #eee; color: #444; border-left-color: var(--rubim-plata); }
+/* Tres variantes de color según el tipo de mensaje: verde para éxito,
+   rojo/carmesí para error, gris neutro para "procesando" (mientras se
+   espera la respuesta del servidor). JavaScript decide cuál de estas
+   tres clases aplicar en cada caso (por ejemplo,
+   "div.className = 'mensaje-box exito'"), y el CSS se encarga del color
+   correspondiente automáticamente. */
+
+/* --- Etiquetas de estado (tags angulares, no "pills") --- */
+.estado-tag {
+    display: inline-block;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    padding: 3px 9px;
+    clip-path: polygon(6px 0, 100% 0, 100% 100%, 0 100%, 0 6px);
+    /* Un "clip-path" más simple que los .corte-* de arriba: solo recorta
+       UNA esquina (la superior izquierda), en vez de dos opuestas —
+       suficiente para una etiqueta pequeña como esta, sin necesitar el
+       mismo nivel de detalle que una tarjeta grande. */
+}
+.estado-pendiente { background: #efe6cf; color: #7a5a10; }
+.estado-revision { background: #ddeaf6; color: #1c5a8c; }
+.estado-completado { background: #dcefdc; color: #24672a; }
+.estado-no-confirmada { background: #f0dede; color: var(--rubim-carmesi); }
+.estado-confirmada { background: #dcefdc; color: #24672a; }
+/* Cada uno de estos nombres de clase corresponde EXACTAMENTE a los
+   valores que arma dinámicamente app.js (ver la tabla 'clasesEstado' y el
+   operador ternario con 'estado-confirmada'/'estado-no-confirmada' en
+   app.js) — el color de fondo/texto de cada "pastilla" de estado en las
+   tablas de Expedientes y Citas viene de aquí. */
+
+/* --- Tablas --- */
+table.rubim-tabla { width: 100%; border-collapse: collapse; }
+/* 'border-collapse: collapse' hace que los bordes de celdas contiguas se
+   fusionen en una sola línea, en vez de dejar un doble borde con un
+   espacio raro en el medio (el comportamiento por defecto de las tablas
+   HTML). */
+table.rubim-tabla thead th {
+    text-align: left;
+    font-family: 'Oswald', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-size: 12px;
+    color: var(--rubim-plata);
+    padding: 10px 12px;
+    border-bottom: 2px solid var(--rubim-negro);
+}
+table.rubim-tabla tbody td {
+    padding: 12px;
+    border-bottom: 1px solid var(--rubim-linea);
+    font-size: 14px;
+}
+table.rubim-tabla tbody tr:hover { background: rgba(140, 28, 43, 0.05); }
+/* Un resaltado muy sutil (5% de opacidad del color carmesí) al pasar el
+   mouse sobre una fila de datos — ayuda a "seguir" visualmente una fila
+   específica cuando la tabla tiene varias columnas. */
+
+/* --- Accesibilidad: foco visible siempre --- */
+a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible {
+    outline: 2px solid var(--rubim-carmesi-brillante);
+    outline-offset: 2px;
+}
+/* ':focus-visible' (a diferencia de ':focus' de más arriba) se activa
+   específicamente cuando el elemento recibe el foco por medio del
+   TECLADO (por ejemplo, navegando con la tecla Tab), y normalmente NO se
+   activa con un simple clic del mouse. Esto es importante para
+   accesibilidad: una persona que navega el sistema solo con teclado
+   necesita ver claramente en qué elemento está parada en cada momento —
+   sin esta regla, esa persona "se perdería" visualmente al usar Tab. */
+
+@media (prefers-reduced-motion: reduce) {
+    * { transition: none !important; }
+}
+/* '@media (prefers-reduced-motion: reduce)' detecta una preferencia que
+   algunas personas activan en la configuración de su sistema operativo
+   (por ejemplo, si les provocan mareo o malestar las animaciones). Si esa
+   preferencia está activada, esta regla desactiva TODAS las transiciones
+   suaves del sistema (como la del ".btn" de más arriba) con
+   '!important' (una palabra clave que fuerza a que esta regla gane por
+   encima de cualquier otra, sin importar el orden en que aparezcan en el
+   archivo) — un detalle pequeño de accesibilidad que muchos sistemas
+   ni siquiera consideran. */

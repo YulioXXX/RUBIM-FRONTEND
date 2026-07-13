@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RUBIM — Panel de Gestión</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="rubim-theme.css">
+<style>
+    body { display: flex; height: 100vh; overflow: hidden; }
+
+    /* ---------- SIDEBAR ---------- */
+    .sidebar {
+        width: 264px;
+        flex-shrink: 0;
+        background: var(--rubim-negro);
+        color: var(--rubim-hueso);
+        display: flex;
+        flex-direction: column;
+        padding: 26px 0 20px;
+        position: relative;
+    }
+    /* corte diagonal en el borde derecho del sidebar — firma visual del panel */
+    .sidebar::after {
+        content: '';
+        position: absolute;
+        top: 0; right: -14px;
+        width: 14px; height: 100%;
+        background: var(--rubim-negro);
+        clip-path: polygon(0 0, 100% 0, 0 100%);
+    }
+
+    .sidebar-badge { width: 110px; margin: 0 auto 22px; }
+
+    .sidebar-usuario {
+        text-align: center;
+        font-size: 12px;
+        color: var(--rubim-plata);
+        margin-bottom: 22px;
+        padding: 0 16px;
+    }
+    .sidebar-usuario strong { display: block; color: var(--rubim-hueso); font-size: 14px; }
+    .sidebar-usuario span.rol {
+        display: inline-block;
+        margin-top: 5px;
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 10.5px;
+        color: var(--rubim-carmesi-brillante);
+        letter-spacing: 0.04em;
+    }
+
+    nav.menu { flex: 1; overflow-y: auto; }
+    .menu-item {
+        position: relative;
+        padding: 14px 24px 14px 30px;
+        font-family: 'Oswald', sans-serif;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        font-size: 14px;
+        cursor: pointer;
+        color: var(--rubim-plata);
+        transition: 0.15s ease;
+        border-left: 3px solid transparent;
+    }
+    .menu-item:hover { color: var(--rubim-hueso); background: var(--rubim-negro-suave); }
+    .menu-item.activo {
+        color: var(--rubim-hueso);
+        background: var(--rubim-negro-suave);
+        border-left-color: var(--rubim-carmesi);
+    }
+    /* esquirla angular junto al item activo */
+    .menu-item.activo::before {
+        content: '';
+        position: absolute;
+        left: -3px; top: 50%;
+        width: 9px; height: 9px;
+        background: var(--rubim-carmesi-brillante);
+        transform: translateY(-50%) rotate(45deg);
+    }
+
+    .menu-item.salir { color: var(--rubim-carmesi-brillante); margin-top: 10px; }
+    .menu-item.salir:hover { background: var(--rubim-carmesi); color: var(--rubim-hueso); }
+
+    /* ---------- CONTENIDO ---------- */
+    .main-content { flex: 1; padding: 40px 46px; overflow-y: auto; }
+    .encabezado { margin-bottom: 4px; }
+    .encabezado .eyebrow {
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 11.5px;
+        color: var(--rubim-carmesi);
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+    }
+    .encabezado h1 { font-size: 28px; margin-top: 4px; }
+
+    .modulo { display: none; max-width: 900px; }
+    #modulo-clientes { display: block; }
+
+    .panel {
+        background: #fff;
+        border: 1px solid var(--rubim-linea);
+        padding: 26px 28px;
+        margin-bottom: 26px;
+    }
+    .panel h2 { font-size: 17px; margin-bottom: 16px; }
+
+    .fila-dos { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+    .nota-permiso {
+        font-size: 13px;
+        color: var(--rubim-plata);
+        font-style: italic;
+        padding: 10px 0;
+    }
+    .accion-tabla {
+        display: flex;
+        gap: 6px;
+        align-items: center;
+    }
+    .accion-tabla select { padding: 6px 8px; font-size: 12.5px; border: 1.5px solid #cfcbc2; }
+    .accion-tabla button {
+        font-family: 'Oswald', sans-serif;
+        font-size: 11.5px;
+        text-transform: uppercase;
+        padding: 6px 10px;
+        border: none;
+        background: var(--rubim-negro);
+        color: var(--rubim-hueso);
+        cursor: pointer;
+    }
+    .accion-tabla button:hover { background: var(--rubim-carmesi); }
+
+    .mono { font-family: 'JetBrains Mono', monospace; font-size: 13px; }
+
+    @media (max-width: 760px) {
+        .sidebar { width: 200px; }
+        .main-content { padding: 26px; }
+        .fila-dos { grid-template-columns: 1fr; }
+    }
+</style>
+</head>
+<body>
+
+<script>
+    if (!localStorage.getItem('rubim_token')) {
+        window.location.href = 'login.html';
+    }
+</script>
+
+<div class="sidebar">
+    <div class="sidebar-badge corte-sm rubim-badge">
+        <img src="assets/rubim_logo.png" alt="RUBIM, C.A.">
+    </div>
+
+    <div class="sidebar-usuario">
+        <strong id="texto-usuario">—</strong>
+        <span class="rol" id="texto-rol">—</span>
+    </div>
+
+    <nav class="menu">
+        <div class="menu-item activo" data-modulo="modulo-clientes">Clientes</div>
+        <div class="menu-item" data-modulo="modulo-leads" id="nav-leads">Leads</div>
+        <div class="menu-item" data-modulo="modulo-citas" id="nav-citas">Citas</div>
+        <div class="menu-item" data-modulo="modulo-expedientes" id="nav-expedientes">Expedientes</div>
+        <div class="menu-item" data-modulo="modulo-facturas" id="nav-facturas">Facturación</div>
+        <div class="menu-item" data-modulo="modulo-cuentas" id="nav-cuentas">Cuentas App Móvil</div>
+        <div class="menu-item" data-modulo="modulo-personal" id="nav-personal">Personal</div>
+        <div class="menu-item salir" id="btn-salir">Cerrar sesión</div>
+    </nav>
+</div>
+
+<div class="main-content">
+
+    <!-- ================= CLIENTES ================= -->
+    <div class="modulo" id="modulo-clientes">
+        <div class="encabezado">
+            <span class="eyebrow">Proceso 2 · Almacén A1</span>
+            <h1>Clientes</h1>
+        </div>
+        <div class="filo-divisor"></div>
+
+        <div class="panel corte-md" id="panel-form-cliente">
+            <h2>Registrar cliente</h2>
+            <form id="form-cliente">
+                <div class="campo">
+                    <label for="nombre">Nombre / Razón social</label>
+                    <input type="text" id="nombre" required>
+                </div>
+                <div class="fila-dos">
+                    <div class="campo">
+                        <label for="tipo_cliente">Clasificación</label>
+                        <select id="tipo_cliente" required>
+                            <option value="">Seleccione...</option>
+                            <option value="Industriales">Industriales</option>
+                            <option value="Comerciantes">Comerciantes</option>
+                            <option value="Particulares">Particulares</option>
+                        </select>
+                    </div>
+                    <div class="campo">
+                        <label for="canal_preview">Canal (vista previa)</label>
+                        <input type="text" id="canal_preview" readonly placeholder="Se calcula en el servidor...">
+                    </div>
+                </div>
+                <div class="campo">
+                    <label for="telefono">Teléfono</label>
+                    <input type="text" id="telefono" placeholder="Ej. 0414-0000000">
+                </div>
+                <button type="submit" class="btn btn-carmesi corte-sm">Registrar cliente</button>
+            </form>
+            <div id="mensaje-cliente" class="mensaje-box"></div>
+        </div>
+
+        <div class="panel corte-md">
+            <h2>Clientes registrados</h2>
+            <table class="rubim-tabla">
+                <thead><tr><th>Nombre</th><th>Tipo</th><th>Canal</th><th>Expediente</th><th>Tel.</th></tr></thead>
+                <tbody id="tabla-clientes"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- ================= LEADS ================= -->
+    <div class="modulo" id="modulo-leads">
+        <div class="encabezado">
+            <span class="eyebrow">Proceso 1 · Captación</span>
+            <h1>Leads</h1>
+        </div>
+        <div class="filo-divisor"></div>
+
+        <div class="panel corte-md" id="panel-form-lead">
+            <h2>Capturar prospecto</h2>
+            <form id="form-lead">
+                <div class="campo"><label for="lead_nombre">Nombre del prospecto</label><input type="text" id="lead_nombre" required></div>
+                <div class="fila-dos">
+                    <div class="campo"><label for="lead_telefono">Teléfono</label><input type="text" id="lead_telefono" required></div>
+                    <div class="campo"><label for="lead_correo">Correo</label><input type="email" id="lead_correo"></div>
+                </div>
+                <div class="campo"><label for="lead_servicio">Servicio de interés</label><input type="text" id="lead_servicio" required placeholder="Ej. Declaración de ISLR"></div>
+                <button type="submit" class="btn btn-carmesi corte-sm">Registrar lead</button>
+            </form>
+            <div id="mensaje-lead" class="mensaje-box"></div>
+        </div>
+
+        <div class="panel corte-md">
+            <h2>Prospectos pendientes de conversión</h2>
+            <table class="rubim-tabla">
+                <thead><tr><th>Prospecto</th><th>Contacto</th><th>Interés</th><th>Convertir a cliente</th></tr></thead>
+                <tbody id="tabla-leads"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- ================= CITAS ================= -->
+    <div class="modulo" id="modulo-citas">
+        <div class="encabezado">
+            <span class="eyebrow">Secretaria · Agenda</span>
+            <h1>Citas</h1>
+        </div>
+        <div class="filo-divisor"></div>
+
+        <div class="panel corte-md" id="panel-form-cita">
+            <h2>Programar cita</h2>
+            <form id="form-cita">
+                <div class="campo"><label for="cita_cliente_id">ID del cliente</label><input type="number" id="cita_cliente_id" required></div>
+                <div class="fila-dos">
+                    <div class="campo"><label for="cita_fecha">Fecha y hora</label><input type="datetime-local" id="cita_fecha" required></div>
+                    <div class="campo"><label for="cita_motivo">Motivo</label><input type="text" id="cita_motivo" required></div>
+                </div>
+                <button type="submit" class="btn btn-carmesi corte-sm">Programar cita</button>
+            </form>
+            <div id="mensaje-cita" class="mensaje-box"></div>
+        </div>
+
+        <div class="panel corte-md">
+            <h2>Citas registradas</h2>
+            <table class="rubim-tabla">
+                <thead><tr><th>Cliente ID</th><th>Fecha</th><th>Motivo</th><th>Estatus</th><th></th></tr></thead>
+                <tbody id="tabla-citas"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- ================= EXPEDIENTES ================= -->
+    <div class="modulo" id="modulo-expedientes">
+        <div class="encabezado">
+            <span class="eyebrow">Proceso 3/4 · Almacén A2</span>
+            <h1>Expedientes contables</h1>
+        </div>
+        <div class="filo-divisor"></div>
+
+        <div class="panel corte-md" id="panel-form-expediente">
+            <h2>Registrar documento</h2>
+            <form id="form-expediente">
+                <div class="fila-dos">
+                    <div class="campo"><label for="exp_cliente_id">ID del cliente</label><input type="number" id="exp_cliente_id" required></div>
+                    <div class="campo"><label for="exp_tipo">Tipo de documento</label><input type="text" id="exp_tipo" required placeholder="Ej. Balance General"></div>
+                </div>
+                <div class="campo"><label for="exp_procesado_por">Procesado por</label><input type="text" id="exp_procesado_por" placeholder="Tu nombre"></div>
+                <button type="submit" class="btn btn-carmesi corte-sm">Registrar documento</button>
+            </form>
+            <div id="mensaje-expediente" class="mensaje-box"></div>
+        </div>
+
+        <div class="panel corte-md">
+            <h2>Expedientes</h2>
+            <table class="rubim-tabla">
+                <thead><tr><th>Cliente ID</th><th>Documento</th><th>Estado</th><th>Actualizar</th></tr></thead>
+                <tbody id="tabla-expedientes"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- ================= FACTURACIÓN ================= -->
+    <div class="modulo" id="modulo-facturas">
+        <div class="encabezado">
+            <span class="eyebrow">Proceso 6 · Almacén A4</span>
+            <h1>Facturación</h1>
+        </div>
+        <div class="filo-divisor"></div>
+
+        <div class="panel corte-md" id="panel-form-factura">
+            <h2>Generar factura</h2>
+            <form id="form-factura">
+                <div class="fila-dos">
+                    <div class="campo"><label for="fac_cliente_id">ID del cliente</label><input type="number" id="fac_cliente_id" required></div>
+                    <div class="campo"><label for="fac_transaccion_id">ID del trámite (opcional)</label><input type="number" id="fac_transaccion_id"></div>
+                </div>
+                <div class="fila-dos">
+                    <div class="campo"><label for="fac_servicio">Servicio</label><input type="text" id="fac_servicio" required></div>
+                    <div class="campo"><label for="fac_costo">Costo (USD)</label><input type="number" step="0.01" id="fac_costo" required></div>
+                </div>
+                <button type="submit" class="btn btn-carmesi corte-sm">Generar factura</button>
+            </form>
+            <div id="mensaje-factura" class="mensaje-box"></div>
+        </div>
+
+        <div class="panel corte-md">
+            <h2>Facturas emitidas</h2>
+            <table class="rubim-tabla">
+                <thead><tr><th>N.° Operación</th><th>Cliente ID</th><th>Servicio</th><th>Costo</th><th>Fecha</th></tr></thead>
+                <tbody id="tabla-facturas"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- ================= CUENTAS APP MÓVIL ================= -->
+    <div class="modulo" id="modulo-cuentas">
+        <div class="encabezado">
+            <span class="eyebrow">Validación de acceso · Administrador / Contador Gerente</span>
+            <h1>Cuentas App Móvil</h1>
+        </div>
+        <div class="filo-divisor"></div>
+
+        <div class="panel corte-md">
+            <h2>Solicitudes de acceso</h2>
+            <table class="rubim-tabla">
+                <thead><tr><th>Cliente ID</th><th>Teléfono</th><th>Correo</th><th>Estatus</th><th>Acciones</th></tr></thead>
+                <tbody id="tabla-cuentas"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- ================= PERSONAL ================= -->
+    <div class="modulo" id="modulo-personal">
+        <div class="encabezado">
+            <span class="eyebrow">Administrador</span>
+            <h1>Personal</h1>
+        </div>
+        <div class="filo-divisor"></div>
+
+        <div class="panel corte-md">
+            <h2>Crear acceso de empleado</h2>
+            <form id="form-personal">
+                <div class="fila-dos">
+                    <div class="campo"><label for="nuevo_usuario">Usuario</label><input type="text" id="nuevo_usuario" required></div>
+                    <div class="campo"><label for="nueva_contrasena">Contraseña</label><input type="password" id="nueva_contrasena" required minlength="6"></div>
+                </div>
+                <div class="fila-dos">
+                    <div class="campo"><label for="nuevo_nombre">Nombre completo</label><input type="text" id="nuevo_nombre"></div>
+                    <div class="campo">
+                        <label for="nuevo_rol">Rol / cargo</label>
+                        <select id="nuevo_rol" required>
+                            <option value="">Seleccione el cargo...</option>
+                            <option value="Administrador">Administrador</option>
+                            <option value="Asesor de Marketing">Asesor de Marketing</option>
+                            <option value="Secretaria">Secretaria</option>
+                            <option value="Contador Auxiliar">Contador Auxiliar</option>
+                            <option value="Contador Junior">Contador Junior</option>
+                            <option value="Contador Senior">Contador Senior</option>
+                            <option value="Contador Gerente">Contador Gerente</option>
+                            <option value="Asesor Financiero">Asesor Financiero</option>
+                        </select>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-carmesi corte-sm">Crear acceso</button>
+            </form>
+            <div id="mensaje-personal" class="mensaje-box"></div>
+        </div>
+    </div>
+
+</div>
+
+<script src="config.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
